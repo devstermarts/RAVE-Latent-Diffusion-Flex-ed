@@ -85,6 +85,3 @@ Coming soon...
 - This code builds on the work done at acids-ircam with [`RAVE (Caillon, 2022)`](https://arxiv.org/abs/2111.05011).
 - The denoising diffusion model is based on the open-source [`audio-diffusion-pytorch`](https://github.com/archinetai/audio-diffusion-pytorch) library.
 - Many thanks to Zach Evans from Harmon.ai for helping debug the code.
-
-## Paper
-Coming soon...
