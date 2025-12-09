@@ -20,6 +20,7 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 from audio_diffusion_pytorch import DiffusionModel, UNetV0, VDiffusion, VSampler
+from model_config import get_architecture
 from torch.utils.data import DataLoader, Dataset
 
 if torch.cuda.is_available():
@@ -59,6 +60,13 @@ def parse_args():
         type=str,
         default=f"run_{current_date}",
         help="Name of your training run.",
+    )
+    parser.add_argument(
+        "--latent_length",
+        type=int,
+        default=4096,
+        choices=[256, 512, 1024, 2048, 4096, 8192, 16384],
+        help="Length of RAVE latents (must match preprocessing).",
     )
     parser.add_argument(
         "--latent_folder",
@@ -126,9 +134,20 @@ def set_seed(seed=664):
     torch.backends.cudnn.benchmark = False
 
 
-def resume_from_checkpoint(checkpoint_path, model, optimizer, scheduler):
+def resume_from_checkpoint(
+    checkpoint_path, model, optimizer, scheduler, expected_latent_length=None
+):
     if checkpoint_path is not None:
-        checkpoint = torch.load(checkpoint_path, weights_only=True)
+        checkpoint = torch.load(checkpoint_path, weights_only=False)
+
+        # Validate architecture matches
+        if expected_latent_length is not None and "latent_length" in checkpoint:
+            if checkpoint["latent_length"] != expected_latent_length:
+                raise ValueError(
+                    f"Checkpoint was trained with latent_length={checkpoint['latent_length']}, "
+                    f"but --latent_length={expected_latent_length} was specified."
+                )
+
         if (
             "model_state_dict" in checkpoint
             and "optimizer_state_dict" in checkpoint
@@ -139,14 +158,27 @@ def resume_from_checkpoint(checkpoint_path, model, optimizer, scheduler):
             scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
             start_epoch = checkpoint["epoch"]
         else:
-            print(
-                "The checkpoint file does not contain the required keys. Training will start from scratch."
-            )
+            print("Checkpoint missing required keys. Training from scratch.")
             start_epoch = 0
     else:
         start_epoch = 0
-
     return start_epoch
+
+
+def create_model(rave_dims: int, latent_length: int):
+    arch = get_architecture(latent_length)
+    return DiffusionModel(
+        net_t=UNetV0,
+        in_channels=rave_dims,
+        channels=arch["channels"],
+        factors=arch["factors"],
+        items=arch["items"],
+        attentions=arch["attentions"],
+        attention_heads=arch["attention_heads"],
+        attention_features=arch["attention_features"],
+        diffusion_t=VDiffusion,
+        sampler_t=VSampler,
+    )
 
 
 def main():
@@ -197,18 +229,7 @@ def main():
         pin_memory=True,
     )
 
-    model = DiffusionModel(
-        net_t=UNetV0,
-        in_channels=rave_dims,
-        channels=[256, 256, 256, 256, 512, 512, 512, 768, 768],
-        factors=[1, 4, 4, 4, 2, 2, 2, 2, 2],
-        items=[1, 2, 2, 2, 2, 2, 2, 4, 4],
-        attentions=[0, 0, 0, 0, 0, 1, 1, 1, 1],
-        attention_heads=12,
-        attention_features=64,
-        diffusion_t=VDiffusion,
-        sampler_t=VSampler,
-    ).to(device)
+    model = create_model(rave_dims, args.latent_length).to(device)
 
     print("Model Architecture:")
     print(model)
@@ -298,6 +319,8 @@ def main():
                     "optimizer_state_dict": optimizer.state_dict(),
                     "scheduler_state_dict": scheduler.state_dict(),
                     "epoch": i,
+                    "latent_length": args.latent_length,
+                    "rave_dims": rave_dims,
                 }
                 new_checkpoint_path = (
                     f"{save_out_path}/{args.name}_best_epoch{i}_loss_{val_loss}.pt"
