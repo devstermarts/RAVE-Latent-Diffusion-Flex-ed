@@ -19,12 +19,13 @@ import numpy as np
 import soundfile as sf
 import torch
 from audio_diffusion_pytorch import DiffusionModel, UNetV0, VDiffusion, VSampler
+from model_config import get_architecture
 
 torch._C._jit_set_profiling_mode(False)
 torch._C._jit_set_profiling_executor(False)
 
 if torch.cuda.is_available():
-    device = torch.device("cuda:0")
+    device = torch.device("cuda")
 elif torch.backends.mps.is_available():
     device = torch.device("mps")
 else:
@@ -74,9 +75,9 @@ def parse_args():
     parser.add_argument(
         "--latent_length",
         type=int,
-        default=1024,
+        default=None,
         choices=[256, 512, 1024, 2048, 4096, 8192, 16384],
-        help="Length of generated RAVE latents.",
+        help="Length of RAVE latents. Only used if checkpoint doesn't contain this info.",
     )
     parser.add_argument(
         "--length_mult",
@@ -175,9 +176,7 @@ def generate_audio(model, rave, args, seed):
 
         ### GENERATING WITH .PT FILE
         diff = model.sample(noise, num_steps=args.diffusion_steps, show_progress=True)
-
-        diff = normalize_latents(diff)
-
+        # diff = normalize_latents(diff)
         rave = rave.cpu()
         diff = diff.cpu()
         print("Decoding using RAVE Model...")
@@ -239,7 +238,6 @@ def interpolate_seeds(model, rave, args, seed):
             y_r = y[len(y) // 2 :]
             y = np.stack((y_l, y_r), axis=-1)
 
-        # path = f'{args.output_path}/rave-latent_diffusion_seed-{seed}_{args.name}_steps-{args.diffusion_steps}_temp-{args.temperature}_{rave_model_name}_slerp.wav'
         path = f"{args.output_path}/{args.name}_{args.seed_a}_{args.seed_b}_slerp.wav"  # Check what happens when seed_a/seed_b=None
         print(f"Writing {path}")
         sf.write(path, y, args.sample_rate)
@@ -250,6 +248,33 @@ def main():
     args = parse_args()
 
     os.makedirs(args.output_path, exist_ok=True)
+
+    checkpoint = torch.load(args.model_path, map_location=device, weights_only=False)
+
+    # Get latent_length: CLI argument takes priority, but warn if mismatched
+    if args.latent_length is not None:
+        latent_length = args.latent_length
+        if "latent_length" in checkpoint:
+            if checkpoint["latent_length"] != latent_length:
+                raise ValueError(
+                    f"Cannot use --latent_length={latent_length}. "
+                    f"Checkpoint was trained with latent_length={checkpoint['latent_length']}. "
+                    f"Model architecture must match the checkpoint."
+                )
+        else:
+            print(
+                f"Warning: No information about latent_length in checkpoint. Using --latent_length={latent_length}"
+            )
+    elif "latent_length" in checkpoint:
+        latent_length = checkpoint["latent_length"]
+        print(f"Using latent_length={latent_length} from checkpoint")
+    else:
+        raise ValueError(
+            "Checkpoint doesn't contain latent_length and --latent_length not specified. "
+            "Please provide --latent_length matching what was used during training."
+        )
+
+    args.latent_length = latent_length
 
     if args.seed is None:
         args.seed = random.randint(0, 2**31 - 1)
@@ -263,26 +288,33 @@ def main():
     rave = torch.jit.load(args.rave_model).to(device)
     rave_dims = get_latent_dim(rave)
 
+    # Validate RAVE dimensions match checkpoint if available
+    if "rave_dims" in checkpoint and checkpoint["rave_dims"] != rave_dims:
+        raise ValueError(
+            f"RAVE model has {rave_dims} dimensions, but checkpoint was trained with {checkpoint['rave_dims']}"
+        )
+
     if not args.sample_rate:
         msg = "RAVE model doesn't store its sample rate. --sample_rate is required."
         assert hasattr(rave, "sr"), msg
         args.sample_rate = rave.sr
 
     ### GENERATING WITH .PT FILE DIFFUSION
+    arch = get_architecture(latent_length)  # Get architecture for this latent_length
+
     model = DiffusionModel(
         net_t=UNetV0,
         in_channels=rave_dims,
-        channels=[256, 256, 256, 256, 512, 512, 512, 768, 768],
-        factors=[1, 4, 4, 4, 2, 2, 2, 2, 2],
-        items=[1, 2, 2, 2, 2, 2, 2, 4, 4],
-        attentions=[0, 0, 0, 0, 0, 1, 1, 1, 1],
-        attention_heads=12,
-        attention_features=64,
+        channels=arch["channels"],
+        factors=arch["factors"],
+        items=arch["items"],
+        attentions=arch["attentions"],
+        attention_heads=arch["attention_heads"],
+        attention_features=arch["attention_features"],
         diffusion_t=VDiffusion,
         sampler_t=VSampler,
     ).to(device)
 
-    checkpoint = torch.load(args.model_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
 
     if not args.lerp:
