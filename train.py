@@ -343,6 +343,8 @@ def main():
                     "optimizer_state_dict": optimizer.state_dict(),
                     "scheduler_state_dict": scheduler.state_dict(),
                     "epoch": i,
+                    "latent_length": args.latent_length,
+                    "rave_dims": rave_dims,
                 }
                 torch.save(checkpoint, f"{save_out_path}/{args.name}_epoch{i}.pt")
 
