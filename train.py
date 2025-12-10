@@ -119,8 +119,26 @@ def parse_args():
     parser.add_argument(
         "--save_interval",
         type=int,
-        default=50,
+        default=100,
         help="Interval (number of epochs) at which to save the model.",
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=1e-4,
+        help="Learning rate for optimizer.",
+    )
+    parser.add_argument(
+        "--weight_decay",
+        type=float,
+        default=1e-4,  # Increased from 1e-5
+        help="Weight decay for optimizer.",
+    )
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=200,
+        help="Stop training if validation loss doesn't improve for this many epochs.",
     )
     parser.add_argument("--finetune", action="store_true", help="Finetune model.")
     return parser.parse_args()
@@ -194,6 +212,7 @@ def main():
 
     best_epoch = None
     best_loss = float("inf")
+    epochs_without_improvement = 0
 
     os.makedirs(args.save_out_path, exist_ok=True)
 
@@ -247,7 +266,9 @@ def main():
 
     if not args.finetune:  # Needs some checking
         ##### TRAIN FROM SCRATCH
-        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+        optimizer = torch.optim.AdamW(
+            model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
         scheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, step_size=args.scheduler_steps, gamma=0.99
         )
@@ -257,7 +278,7 @@ def main():
     else:
         #### FINETUNE
         optimizer = torch.optim.AdamW(
-            model.parameters(), lr=1e-5, weight_decay=1e-5
+            model.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )  # Change the learning rate
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=args.scheduler_steps, eta_min=1e-6
@@ -285,18 +306,8 @@ def main():
                 optimizer.step()
                 optimizer.zero_grad()
 
-            # train_loss += loss.item()
-        #
-        # if (step + 1) % accumulation_steps == 0:
-        # loss = loss / accumulation_steps
-        # loss.backward()
-        # optimizer.step()
-        # optimizer.zero_grad()
-
         train_loss /= len(train_data_loader)
         print(f"Epoch {i + 1}, train loss: {train_loss}")
-
-        # random.shuffle(train_dataset.latent_files) # No effect?
 
         with torch.no_grad():
             model.eval()
@@ -314,6 +325,8 @@ def main():
 
             # Save the best model
             if val_loss < best_loss:
+                epochs_without_improvement = 0
+
                 checkpoint = {
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
@@ -335,6 +348,28 @@ def main():
                         os.remove(old_checkpoint_path)
                 best_epoch = i
                 best_loss = val_loss
+            else:
+                epochs_without_improvement += 1
+                print(
+                    f"No improvement in validation loss for {epochs_without_improvement} epochs"
+                )
+                if epochs_without_improvement >= args.patience:
+                    print(
+                        f"Early stopping: no improvement after {args.patience} epochs"
+                    )
+                    checkpoint = {
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "scheduler_state_dict": scheduler.state_dict(),
+                        "epoch": i,
+                        "latent_length": args.latent_length,
+                        "rave_dims": rave_dims,
+                    }
+                    torch.save(
+                        checkpoint,
+                        f"{save_out_path}/{args.name}_early_stop_epoch{i}.pt",
+                    )
+                    break
 
             # Save a checkpoint every n epochs
             if i % save_interval == 0:
