@@ -92,13 +92,21 @@ def parse_args():
         help="Path to where you want to save the audio file.",
     )
     parser.add_argument(
-        "--num", type=int, default=1, help="Number of audio to generate."
+        "--num",
+        type=int,
+        default=1,
+        help="Number of audio to generate.",
     )
     parser.add_argument(
-        "--name", type=str, default="output", help="Name of audio to generate."
+        "--name",
+        type=str,
+        default="output",
+        help="Name of audio to generate.",
     )
     parser.add_argument(
-        "--lerp", action="store_true", help="Interpolate between two seeds."
+        "--lerp",
+        action="store_true",
+        help="Interpolate between two seeds.",
     )
     parser.add_argument(
         "--lerp_factor",
@@ -124,6 +132,17 @@ def parse_args():
         default=1.0,
         help="Temperature of the random noise before diffusion.",
     )
+    parser.add_argument(
+        "--latent_scale",
+        type=float,
+        default=1.0,
+        help="Scale factor applied to normalized latents before RAVE decoding.",
+    )
+    parser.add_argument(
+        "--skip_normalize",
+        action="store_true",
+        help="Skip latent normalization before RAVE decoding.",
+    )
     return parser.parse_args()
 
 
@@ -146,10 +165,11 @@ def slerp(val, low, high):
 
 
 # Latent normalization helper function
-def normalize_latents(diff):
+def normalize_latents(diff, scale=1.0):
     diff_mean = diff.mean()
     diff_std = diff.std()
-    return (diff - diff_mean) / diff_std
+    normalized = (diff - diff_mean) / diff_std
+    return normalized * scale
 
 
 # Generate the audio using the provided models and settings.
@@ -176,7 +196,10 @@ def generate_audio(model, rave, args, seed):
 
         ### GENERATING WITH .PT FILE
         diff = model.sample(noise, num_steps=args.diffusion_steps, show_progress=True)
-        # diff = normalize_latents(diff)
+
+        if not args.skip_normalize:
+            diff = normalize_latents(diff, scale=args.latent_scale)
+
         rave = rave.cpu()
         diff = diff.cpu()
         print("Decoding using RAVE Model...")
@@ -186,7 +209,6 @@ def generate_audio(model, rave, args, seed):
         if rave.stereo:
             y_l = y[: len(y) // 2]
             y_r = y[len(y) // 2 :]
-
             y = np.stack((y_l, y_r), axis=-1)
 
         path = f"{args.output_path}/{args.name}_{args.seed}.wav"
@@ -224,8 +246,8 @@ def interpolate_seeds(model, rave, args, seed):
         diff = slerp(
             torch.linspace(0.0, args.lerp_factor, z_length).to(device), diff1, diff2
         )
-
-        diff = normalize_latents(diff)
+        if not args.skip_normalize:
+            diff = normalize_latents(diff, scale=args.latent_scale)
 
         rave = rave.cpu()
         diff = diff.cpu()
