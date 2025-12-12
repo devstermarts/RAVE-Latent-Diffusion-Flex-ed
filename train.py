@@ -9,7 +9,7 @@
 
 # Todos:
 # - check finetune in detail
-# - testing
+# - testing all model configurations
 
 import argparse
 import datetime
@@ -24,7 +24,7 @@ from model_config import get_architecture
 from torch.utils.data import DataLoader, Dataset
 
 if torch.cuda.is_available():
-    device = torch.device("cuda:0")
+    device = torch.device("cuda")
 elif torch.backends.mps.is_available():
     device = torch.device("mps")
 else:
@@ -70,7 +70,7 @@ def parse_args():
     parser.add_argument(
         "--latent_length",
         type=int,
-        default=4096,
+        default=512,
         choices=[256, 512, 1024, 2048, 4096, 8192, 16384],
         help="Length of RAVE latents (must match preprocessing).",
     )
@@ -105,7 +105,10 @@ def parse_args():
         help="Ratio for splitting the dataset into training and validation sets.",
     )
     parser.add_argument(
-        "--max_epochs", type=int, default=25000, help="Maximum epochs to train model."
+        "--max_epochs",
+        type=int,
+        default=25000,
+        help="Maximum epochs to train model.",
     )
     parser.add_argument(
         "--scheduler_steps",
@@ -114,7 +117,10 @@ def parse_args():
         help="Number of epochs between learning rate decay steps.",
     )
     parser.add_argument(
-        "--batch_size", type=int, default=8, help="Batch size for training."
+        "--batch_size",
+        type=int,
+        default=8,
+        help="Batch size for training.",
     )
     parser.add_argument(
         "--noise_std",
@@ -152,7 +158,11 @@ def parse_args():
         default=200,
         help="Stop training if validation loss doesn't improve for this many epochs.",
     )
-    parser.add_argument("--finetune", action="store_true", help="Finetune model.")
+    parser.add_argument(
+        "--finetune",
+        action="store_true",
+        help="Finetune model.",
+    )
     return parser.parse_args()
 
 
