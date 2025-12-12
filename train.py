@@ -6,10 +6,10 @@
 #### ----------
 #### Updates in this fork: Martin Heinze
 #### Year: 2025
-#
-# # Todos:
-# # - check finetune in detail
-# # - testing
+
+# Todos:
+# - check finetune in detail
+# - testing
 
 import argparse
 import datetime
@@ -33,10 +33,12 @@ current_date = datetime.date.today()
 
 
 class RaveDataset(Dataset):
-    def __init__(self, latent_folder, latent_files):
+    def __init__(self, latent_folder, latent_files, augment=False, noise_std=0.1):
         self.latent_folder = latent_folder
         self.latent_files = latent_files
         self.latent_data = []
+        self.augment = augment
+        self.noise_std = noise_std
 
         for latent_file in self.latent_files:
             latent_path = os.path.join(self.latent_folder, latent_file)
@@ -50,7 +52,11 @@ class RaveDataset(Dataset):
         return len(self.latent_data)
 
     def __getitem__(self, index):
-        return self.latent_data[index]
+        z = self.latent_data[index]
+        if self.augment:
+            z = z.clone()
+            z = z + torch.randn_like(z) * self.noise_std  # Adding noise
+        return z
 
 
 def parse_args():
@@ -105,10 +111,16 @@ def parse_args():
         "--scheduler_steps",
         type=int,
         default=100,
-        help="Diffusion steps for scheduler.",
+        help="Number of epochs between learning rate decay steps.",
     )
     parser.add_argument(
         "--batch_size", type=int, default=8, help="Batch size for training."
+    )
+    parser.add_argument(
+        "--noise_std",
+        type=float,
+        default=0.1,
+        help="Standard deviation of Gaussian noise for data augmentation.",
     )
     parser.add_argument(
         "--accumulation_steps",
@@ -228,8 +240,10 @@ def main():
     train_latent_files = latent_files[:split_index]
     val_latent_files = latent_files[split_index:]
 
-    train_dataset = RaveDataset(latent_folder, train_latent_files)
-    val_dataset = RaveDataset(latent_folder, val_latent_files)
+    train_dataset = RaveDataset(
+        latent_folder, train_latent_files, augment=True, noise_std=args.noise_std
+    )
+    val_dataset = RaveDataset(latent_folder, val_latent_files, augment=False)
 
     rave_dims = train_dataset.latent_size
 
