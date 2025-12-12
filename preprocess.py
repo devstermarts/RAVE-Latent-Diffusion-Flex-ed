@@ -19,10 +19,10 @@ import torch
 from tqdm import tqdm
 
 if torch.cuda.is_available():
-    device = torch.device("cuda:0")
+    device = torch.device("cuda")
     print("Using CUDA")
 elif torch.backends.mps.is_available():
-    device = torch.device("mps:0")
+    device = torch.device("mps")
     print("Using MPS")
 else:
     device = torch.device("cpu")
