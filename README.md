@@ -45,8 +45,8 @@ conda activate rave-latent-diffusion
 Clone this repository, run pip install on requirements.txt
 
 ```bash
-git clone https://github.com/devstermarts/RAVE-Latent-Diffusion.git
-cd RAVE-Latent-Diffusion
+git clone https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed.git
+cd RAVE-Latent-Diffusion-Flex-ed
 pip install -r requirements.txt
 ```
 
