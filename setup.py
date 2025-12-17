@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="rave-latent-diffusion-flex-ed",
     packages=find_packages(exclude=[]),
-    version="0.1.0",
+    version="0.2.0",
     license="MIT",
     description="RAVE-Latent Diffusion (Flex'ed)",
     long_description_content_type="text/markdown",
