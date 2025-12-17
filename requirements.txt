@@ -2,7 +2,7 @@ torch==2.7.1
 torchvision==0.22.1
 torchaudio==2.7.1
 librosa
-git+https://github.com/devstermarts/audio-diffusion-pytorch
+audio-diffusion-pytorch @ git+https://github.com/devstermarts/audio-diffusion-pytorch@c2fdd669d0641b170e5f45ca97981250ff270b68
 pydub
 numpy
 scipy

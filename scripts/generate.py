@@ -1,11 +1,9 @@
-#### RAVE-Latent Diffusion
-#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
+#### RAVE-Latent Diffusion (Flex'ed)
+#### https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed
 ####
-#### Author: Moisés Horta Valenzuela / @hexorcismos
-#### Year: 2023
+#### Forked from RAVE-Latent Diffusion by Moisés Horta Valenzuela / @hexorcismos
+#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
 #### ----------
-#### Updates in this fork: Martin Heinze
-#### Year: 2025
 
 # Todos/ ideas:
 # - Add starting/ending point and/or timeframe for slerp
@@ -19,7 +17,7 @@ import numpy as np
 import soundfile as sf
 import torch
 from audio_diffusion_pytorch import DiffusionModel, UNetV0, VDiffusion, VSampler
-from model_config import get_architecture
+from model.model_config import get_architecture
 
 torch._C._jit_set_profiling_mode(False)
 torch._C._jit_set_profiling_executor(False)

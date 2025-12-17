@@ -1,11 +1,9 @@
-#### RAVE-Latent Diffusion
-#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
+#### RAVE-Latent Diffusion (Flex'ed)
+#### https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed
 ####
-#### Author: Moisés Horta Valenzuela / @hexorcismos
-#### Year: 2023
+#### Forked from RAVE-Latent Diffusion by Moisés Horta Valenzuela / @hexorcismos
+#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
 #### ----------
-#### Updates in this fork: Martin Heinze
-#### Year: 2025
 
 # Todos:
 # - check finetune in detail
@@ -20,7 +18,7 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 from audio_diffusion_pytorch import DiffusionModel, UNetV0, VDiffusion, VSampler
-from model_config import get_architecture
+from model.model_config import get_architecture
 from torch.utils.data import DataLoader, Dataset
 
 if torch.cuda.is_available():

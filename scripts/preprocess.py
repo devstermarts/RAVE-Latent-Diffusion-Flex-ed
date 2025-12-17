@@ -1,11 +1,12 @@
-#### RAVE-Latent Diffusion
-#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
+#### RAVE-Latent Diffusion (Flex'ed)
+#### https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed
 ####
-#### Author: Moisés Horta Valenzuela / @hexorcismos
-#### Year: 2023
+#### Forked from RAVE-Latent Diffusion by Moisés Horta Valenzuela / @hexorcismos
+#### https://github.com/moiseshorta/RAVE-Latent-Diffusion
 #### ----------
-#### Updates in this fork: Martin Heinze
-#### Year: 2025
+
+# Todos:
+# - make conversion to .npy more verbose
 
 import argparse
 import hashlib  # for hashing paths

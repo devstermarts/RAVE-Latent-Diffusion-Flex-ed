@@ -1,3 +1,7 @@
+#### RAVE-Latent Diffusion (Flex'ed)
+#### https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed
+#### ----------
+
 # Model architecture configurations for different latent lengths
 # The total downsampling factor must be <= latent_length
 

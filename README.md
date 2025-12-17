@@ -11,7 +11,7 @@ Forked and updated by Martin Heinze | [`marts~`](https://martstil.de). Year: 202
 - __model_config.py__ (new and experimental!)
   - architecture presets for training diffusion models on different latent lengths (and smaller datasets)
 - __preprocess.py__
-  - added shorter --latent_length options to preprocess.py
+  - added shorter '--latent_length' options to preprocess.py
 - __train.py__
   - fixed gradient accumulation 
   - fixed scheduler state mismatch
@@ -47,14 +47,14 @@ Clone this repository, run pip install on requirements.txt
 ```bash
 git clone https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed.git
 cd RAVE-Latent-Diffusion-Flex-ed
-pip install -r requirements.txt
+pip install .
 ```
 
 ## Preprocessing
-*See __preprocess.py__ for all flags and arguments.*
+*See __/scripts/preprocess.py__ for all flags and arguments.*
 
 ```bash
-python preprocess.py \
+rldf-preprocess \
 --rave_model "/path/to/your/pretrained/rave/stereo_model.ts" \
 --audio_folder "/path/to/your/audio/dataset" \
 --latent_length 256 \ # 512, 1024, 2048, 4096, 8192, 16384
@@ -62,10 +62,10 @@ python preprocess.py \
 ```
 
 ## Training
-*See __train.py__ for all flags and arguments.*
+*See __/scripts/train.py__ for all flags and arguments.*
 
 ```bash
-python train.py \
+rldf-train \
 --name your-run-name \
 --latent_length 256 \ # 512, 1024, 2048, 4096, 8192, 16384. Must match latent length in preprocessing
 --latent_folder "/path/to/saved/encoded/rave/latents" \
@@ -73,10 +73,10 @@ python train.py \
 ```
 
 ## Generation
-*See __generate.py__ for all flags and arguments.*
+*See __/scripts/generate.py__ for all flags and arguments.*
 
 ```bash
-python generate.py \
+rldf-generate \
 --model_path "/path/to/trained/rave-latent-diffusion/model.pt" \
 --rave_model "/path/to/your/pretrained/rave/model.ts" \
 --diffusion_steps 100 \
@@ -87,10 +87,9 @@ python generate.py \
 ```
 
 ### Spherical interpolation between generated RAVE latents
-*See __generate.py__ for all flags and arguments.*
 
 ```bash
-python generate.py \
+rldf-generate \
 --model_path "/path/to/trained/rave-latent-diffusion/model.pt" \
 --rave_model "/path/to/your/pretrained/rave/model.ts" \
 --diffusion_steps 100 \

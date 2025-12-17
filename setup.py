@@ -1,0 +1,56 @@
+from setuptools import find_packages, setup
+
+setup(
+    name="rave-latent-diffusion-flex-ed",
+    packages=find_packages(exclude=[]),
+    version="0.1.0",
+    license="MIT",
+    description="RAVE-Latent Diffusion (Flex'ed)",
+    long_description_content_type="text/markdown",
+    long_description="RAVE-Latent Diffusion (Flex'ed) is a modified version of the original RAVE-Latent Diffusion code by [Moisés Horta Valenzuela](https://github.com/moiseshorta).",
+    author="Martin Heinze",
+    url="https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed",
+    project_urls={
+        "Original repository of RAVE-Latent-Diffusion": "https://github.com/moiseshorta/RAVE-Latent-Diffusion",
+    },
+    keywords=[
+        "artificial intelligence",
+        "deep learning",
+        "audio generation",
+        "latent diffusion",
+        "RAVE",
+    ],
+    install_requires=[
+        "torch==2.7.1",
+        "torchvision==0.22.1",
+        "torchaudio==2.7.1",
+        "librosa",
+        "audio-diffusion-pytorch @ git+https://github.com/devstermarts/audio-diffusion-pytorch",
+        "pydub",
+        "numpy",
+        "scipy",
+        "tqdm",
+        "soundfile",
+        "transformers==4.29.2",
+    ],
+    entry_points={
+        "console_scripts": [
+            "rldf-preprocess = scripts.preprocess:main",
+            "rldf-train = scripts.train:main",
+            "rldf-generate = scripts.generate:main",
+        ],
+    },
+    classifiers=[
+        "Private :: DO NOT UPLOAD",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+    ],
+    python_requires=">=3.9",
+)
