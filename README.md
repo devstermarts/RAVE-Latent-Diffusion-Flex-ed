@@ -1,5 +1,5 @@
 # RAVE-Latent Diffusion (Flex'ed)
-Generate new latent codes for RAVE with Denoising Diffusion Probabilistic models...with a few more options. 
+Generate new latent codes for RAVE with Denoising Diffusion Probabilistic models...now with a few more options. 
 
 Author: Moisés Horta Valenzuela / [`𝔥𝔢𝔵𝔬𝔯𝔠𝔦𝔰𝔪𝔬𝔰`](https://twitter.com/hexorcismos). Year: 2023\
 Forked and updated by Martin Heinze | [`marts~`](https://martstil.de). Year: 2025

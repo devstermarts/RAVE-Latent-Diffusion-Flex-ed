@@ -7,7 +7,7 @@ setup(
     license="MIT",
     description="RAVE-Latent Diffusion (Flex'ed)",
     long_description_content_type="text/markdown",
-    long_description="RAVE-Latent Diffusion (Flex'ed) is a modified version of the original RAVE-Latent Diffusion code by [Moisés Horta Valenzuela](https://github.com/moiseshorta).",
+    long_description="RAVE-Latent Diffusion (Flex'ed) is a modified version of the original RAVE-Latent Diffusion code by [Moisés Horta Valenzuela](https://github.com/moiseshorta) with additional features and improvements.",
     author="Martin Heinze",
     url="https://github.com/devstermarts/RAVE-Latent-Diffusion-Flex-ed",
     project_urls={
