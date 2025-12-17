@@ -6,3 +6,6 @@ temp/
 *.npy
 *.pt
 *.wav
+.DS_Store
+*.pyc
+*egg-info*
