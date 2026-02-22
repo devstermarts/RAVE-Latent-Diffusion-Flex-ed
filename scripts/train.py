@@ -18,8 +18,9 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 from audio_diffusion_pytorch import DiffusionModel, UNetV0, VDiffusion, VSampler
-from model.model_config import get_architecture
 from torch.utils.data import DataLoader, Dataset
+
+from model.model_config import get_architecture
 
 if torch.cuda.is_available():
     device = torch.device("cuda")
