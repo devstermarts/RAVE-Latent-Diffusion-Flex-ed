@@ -80,7 +80,7 @@ def parse_args():
 
 
 def encode_and_save_latent(
-    rave, audio_data, output_base_name, latent_folder, latent_length
+    rave, audio_data, output_base_name, latent_folder, latent_length, norm_off
 ):
     with torch.no_grad():
         x = torch.from_numpy(audio_data).reshape(1, 1, -1)
@@ -92,7 +92,7 @@ def encode_and_save_latent(
         z = rave.encode(x)
         print("Encoded into latent", z.shape)
 
-        if not args.norm_off:
+        if not norm_off:
             z_mean = z.mean()
             z_std = z.std()
             z = (z - z_mean) / z_std
@@ -171,7 +171,12 @@ def main():
             output_file = f"{dir_hash}_{base_name}_part{i:03d}"
             pbar.set_postfix_str(f"chunk:{i}")
             encode_and_save_latent(
-                rave, cropped_data, output_file, args.latent_folder, args.latent_length
+                rave,
+                cropped_data,
+                output_file,
+                args.latent_folder,
+                args.latent_length,
+                args.norm_off,
             )
 
     print("Done encoding RAVE latents into ", args.latent_folder)

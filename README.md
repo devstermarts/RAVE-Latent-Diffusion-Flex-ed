@@ -12,6 +12,7 @@ Forked and updated by Martin Heinze | [`marts~`](https://martstil.de). Year: 202
   - architecture presets for training diffusion models on different latent lengths (and smaller datasets)
 - __preprocess.py__
   - added shorter '--latent_length' options to preprocess.py
+  - added '--norm_off' flag to optionally disable latent normalization before training
 - __train.py__
   - fixed gradient accumulation 
   - fixed scheduler state mismatch
