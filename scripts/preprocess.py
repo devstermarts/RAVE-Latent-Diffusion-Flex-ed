@@ -71,6 +71,11 @@ def parse_args():
         default=["wav", "opus", "mp3", "aac", "flac"],
         help="Extensions to search for in audio_folder",
     )
+    parser.add_argument(
+        "--norm_off",
+        action="store_true",
+        help="Disable latent normalization.",
+    )
     return parser.parse_args()
 
 
@@ -87,9 +92,10 @@ def encode_and_save_latent(
         z = rave.encode(x)
         print("Encoded into latent", z.shape)
 
-        z_mean = z.mean()
-        z_std = z.std()
-        z = (z - z_mean) / z_std
+        if not args.norm_off:
+            z_mean = z.mean()
+            z_std = z.std()
+            z = (z - z_mean) / z_std
 
         if device.type != "cpu":
             z = z.cpu()
